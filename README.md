@@ -30,10 +30,11 @@ Please refer to the [tutorial notebooks](example/pmf_tutorial.md) for details.
 
 ## Running options
 ```
-Parameters for Probabilistic Matrix Factorization (PMF):
+Parameters for Probabilistic Poisson Matrix Factorization (PPMF):
   -h [ --help ]                         Help
-  -i [ --input ] arg                    Input file name
-  -m [ --map ] arg                      Item mapping file name
+  -i [ --input ] arg (=../data/expr.csv)
+                                        Input file name
+  -m [ --map ] arg (=../data/genes.csv) Item mapping file name
   -d [ --use_defaults ]                 If enabled, uses './movielens/ratings.c
                                         sv' for the input file and 
                                         './movielens/movies.csv' for the map 
@@ -51,7 +52,8 @@ Parameters for Probabilistic Matrix Factorization (PMF):
   -n [ --n_epochs ] arg (=200)          Num. of learning iterations
                                         [default: 200]
                                         
-  -r [ --ratio ] arg (=0.7)             Ratio for training/test set splitting
+  -r [ --ratio ] arg (=0.69999999999999996)
+                                        Ratio for training/test set splitting
                                         [default: 0.7]
                                         
   --thread arg (=4)                     Number of threads for parallelization
@@ -61,18 +63,20 @@ Parameters for Probabilistic Matrix Factorization (PMF):
   --gamma arg (=0.01)                   Learning rate for gradient descent
                                         [default: 0.01]
                                         
-  --std_theta arg (=1)                  Std. of theta's prior normal 
-                                        distribution
-                                        [default: 1]
+  --lambda_theta arg (=0.050000000000000003)
+                                        shape of Gamma prior for spots
                                         
-  --std_beta arg (=1)                   Std. of beta's prior normal 
-                                        distribution
-                                        [default: 1]
+  --lambda_beta arg (=0.050000000000000003)
+                                        shape of Gamma prior for genes
+                                        
+  --eta_theta arg (=10)                 rate of Gamma prior for spots
+                                        
+  --eta_beta arg (=10)                  rate of Gamma prior for genes
                                         
   -s [ --run_sequential ]               Enable running model fitting 
                                         sequentially
                                         
-  --user                                Recommend items for given user
+  --spot                                Recommend items for given spot
                                         
   --item                                Recommend similar items for a given 
                                         item
@@ -80,13 +84,8 @@ Parameters for Probabilistic Matrix Factorization (PMF):
   --loss_interval arg (=10)             Number of epochs between each loss 
                                         computation.
                                         [default: 10]
+
 ```
-
-## Quick start
-Please refer to the sample running scripts for [training](example/sample_train.sh) and [recommendation](example/sample_recommend.sh).
-
-## Tutorial
-Please kindly find our comprehensive [tutorial](docs/tutorial.pdf), [manual](docs/manual.pdf) and [design document](docs/design.pdf)
 
 ## References
 - Mnih, A., & Salakhutdinov, R. R. (2007). Probabilistic matrix factorization. *Advances in neural information processing systems*, *20*, 1257-1264
