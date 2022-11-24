@@ -39,8 +39,8 @@ void configureInput(po::variables_map &vm, Arguments &args)
     // Configure input directory
     if (vm["use_defaults"].as<bool>())
     {
-        args.indir = "./movielens/ratings.csv";
-        args.mapdir = "./movielens/movies.csv";
+        args.indir = "../data/exprs.csv";
+        args.mapdir = "../data/genes.csv";
         cout << "[ use_defaults, d ] enabled. Setting indir as " << args.indir << " and mapdir as " << args.mapdir
              << endl;
     }
@@ -103,25 +103,25 @@ void configureTask(po::variables_map &vm, Arguments &args)
     }
     else if (vm["task"].as<string>() == "recommend")
     {
-        if (!vm["user"].as<bool>() && !vm["item"].as<bool>())
+        if (!vm["spot"].as<bool>() && !vm["item"].as<bool>())
         {
-            cerr << "Please specify --user or --item to recommend.\n";
+            cerr << "Please specify --spot or --item to recommend.\n";
             exit(1);
         }
 
-        // "user" & "item" options -- XOR with each other
-        if (vm["user"].as<bool>() == vm["item"].as<bool>())
+        // "spot" & "item" options -- XOR with each other
+        if (vm["spot"].as<bool>() == vm["item"].as<bool>())
         {
-            cerr << "Both --user or --item specified. Please specify one. \n";
+            cerr << "Both --spot or --item specified. Please specify one. \n";
             exit(1);
         }
 
         args.task = "recommend";
-        args.rec_option = (vm["user"].as<bool>()) ? RecOption::user : RecOption::item;
+        args.rec_option = (vm["spot"].as<bool>()) ? RecOption::spot : RecOption::item;
     }
     else
     {
-        cerr << "Unsupported recommendation option, please choose one from either `--user` or `--item`" << endl;
+        cerr << "Unsupported recommendation option, please choose one from either `--spot` or `--item`" << endl;
         exit(1);
     }
 }
@@ -140,13 +140,15 @@ void configurePMF(po::variables_map &vm, Arguments &args)
     args.n_epochs = vm["n_epochs"].as<int>();
     args.gamma = vm["gamma"].as<double>();
     args.ratio = vm["ratio"].as<double>();
-    args.std_theta = vm["std_theta"].as<double>();
-    args.std_beta = vm["std_beta"].as<double>();
+    args.lambda_theta = vm["lambda_theta"].as<double>();
+    args.lambda_beta = vm["lambda_beta"].as<double>();
+    args.eta_theta = vm["eta_theta"].as<double>();
+    args.eta_beta = vm["eta_beta"].as<double>();
     args.loss_interval = vm["loss_interval"].as<int>();
 
     if (args.n_threads < 2)
     {
-        cerr << "Num threads must be at least 2. User provided: " << args.n_threads << endl;
+        cerr << "Num threads must be at least 2. Spot provided: " << args.n_threads << endl;
         exit(1);
     }
 }
@@ -249,6 +251,20 @@ vector<int> getUnique(const MatrixXd &mat, int col_idx)
     vector<int> unique(unique_set.begin(), unique_set.end());
 
     return unique;
+}
+
+/**
+ *
+ * @param x Vector of observations
+ * @param a Gamma prior shape
+ * @param b Gamma prior rate
+ * @return log likelihood
+ */
+double gammaLogLikelihood(const VectorXd &x, double a, double b)
+{
+    double term1 = ((a-1)*x.array().log1p()).mean();
+    double term2 = (b*x).mean();
+    return  a*log1p(b) - lgamma(a) + term1 - term2;
 }
 
 /**

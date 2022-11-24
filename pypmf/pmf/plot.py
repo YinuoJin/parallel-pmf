@@ -9,8 +9,7 @@ from mpl_toolkits.mplot3d import proj3d
 from matplotlib import colors
 from matplotlib.patches import FancyArrowPatch
 from sklearn.manifold import TSNE
-
-from mayavi import mlab
+#from mayavi import mlab
 
 # Reference:
 # https://stackoverflow.com/questions/58903383/fancyarrowpatch-in-3d
@@ -37,18 +36,18 @@ def loss(df_loss, outdir, display=True):
 
 def _norm_vector(vec):
     return vec / np.linalg.norm(vec)
-
-def _set_mlab_axis(scale, bg_color, axis_color):
+"""
+#def _set_mlab_axis(scale, bg_color, axis_color):
     len_axis = 2*scale
-    mlab.figure(bgcolor=bg_color, size=(int(scale * 0.8), int(scale * 0.6)))
-    mlab.plot3d([-len_axis, len_axis], [0, 0], [0, 0], color=axis_color, tube_radius=10.)
-    mlab.plot3d([0, 0], [-len_axis, len_axis], [0, 0], color=axis_color, tube_radius=10.)
-    mlab.plot3d([0, 0], [0, 0], [-len_axis, len_axis], color=axis_color, tube_radius=10.)
+    #mlab.figure(bgcolor=bg_color, size=(int(scale * 0.8), int(scale * 0.6)))
+    #mlab.plot3d([-len_axis, len_axis], [0, 0], [0, 0], color=axis_color, tube_radius=10.)
+    #mlab.plot3d([0, 0], [-len_axis, len_axis], [0, 0], color=axis_color, tube_radius=10.)
+    #mlab.plot3d([0, 0], [0, 0], [-len_axis, len_axis], color=axis_color, tube_radius=10.)
 
-    mlab.text3d(len_axis + 50, -50, +50, 'Attr_1', color=axis_color, scale=100.)
-    mlab.text3d(0, len_axis + 50, +50, 'Attr_2', color=axis_color, scale=100.)
-    mlab.text3d(0, -50, len_axis + 50, 'Attr_3', color=axis_color, scale=100.)
-
+    #mlab.text3d(len_axis + 50, -50, +50, 'Attr_1', color=axis_color, scale=100.)
+    #mlab.text3d(0, len_axis + 50, +50, 'Attr_2', color=axis_color, scale=100.)
+    #mlab.text3d(0, -50, len_axis + 50, 'Attr_3', color=axis_color, scale=100.)
+"""
 
 def tsne(df):
     sns.set_theme()
@@ -68,7 +67,7 @@ def tsne(df):
     plt.show()
 
 
-@mlab.show
+#@mlab.show
 def tsne_interactive(df, scale=1000, ratio=100):
     labels = np.unique(df['cluster'])
     n_clusters = len(labels)
@@ -78,12 +77,11 @@ def tsne_interactive(df, scale=1000, ratio=100):
     black = colors.to_rgb('black')
 
     # set axis
-    _set_mlab_axis(scale*2, bg_color=white, axis_color=black)
+    #_set_mlab_axis(scale*2, bg_color=white, axis_color=black)
     # scatter plot
     for label, c in zip(labels, cmap):
         df_label = df[df['cluster'] == label]
-        mlab.points3d(df_label['attr_1'] * ratio, df_label['attr_2'] * ratio, df_label['attr_3'] * ratio,
-                      color=c, scale_factor=30)
+        #mlab.points3d(df_label['attr_1'] * ratio, df_label['attr_2'] * ratio, df_label['attr_3'] * ratio, color=c, scale_factor=30)
 
 
 def arrow(vectors):
@@ -151,14 +149,14 @@ def arrow_joint(vec_users, vec_items):
 
     plt.show()
 
-@mlab.show
+#@mlab.show
 def arrow_interactive(vectors, names, show_title=False, is_similar=False, scale=1000):
     cmap = {0: 'r', 1: 'g', 2: 'b'}
     black = colors.to_rgb('black')
     white = colors.to_rgb('white')
 
     # set axis
-    _set_mlab_axis(scale, bg_color=white, axis_color=black)
+    #_set_mlab_axis(scale, bg_color=white, axis_color=black)
 
     if is_similar:
         title_x, title_y, title_z = -500, scale*2+200, scale*2+200
@@ -167,17 +165,17 @@ def arrow_interactive(vectors, names, show_title=False, is_similar=False, scale=
         vec = _norm_vector(vec)
         color = colors.to_rgb(cmap[np.argmax(np.abs(vec))])
         vec = scale * np.array(vec)
-        mlab.plot3d([0, vec[0]], [0, vec[1]], [0, vec[2]], color=color, tube_radius=5.)
-
+        #mlab.plot3d([0, vec[0]], [0, vec[1]], [0, vec[2]], color=color, tube_radius=5.)
         if show_title:
             if is_similar:
-                mlab.text3d(title_x, title_y, title_z, name, color=black, scale=30)
+                #mlab.text3d(title_x, title_y, title_z, name, color=black, scale=30)
                 title_z -= 100
             else:
-                mlab.text3d(1.05*vec[0] , 1.05*vec[1]*1.1, 1.05*vec[2], name, color=black, scale=30)
+                pass
+                #mlab.text3d(1.05*vec[0] , 1.05*vec[1]*1.1, 1.05*vec[2], name, color=black, scale=30)
 
 
-@mlab.show
+#@mlab.show
 def arrow_joint_interactive(vec_users, vec_items, names, show_title=False, scale=1000):
     black = colors.to_rgb('black')
     white = colors.to_rgb('white')
@@ -185,13 +183,13 @@ def arrow_joint_interactive(vec_users, vec_items, names, show_title=False, scale
     green = colors.to_rgb('green')
 
     # set axis
-    _set_mlab_axis(scale, bg_color=white, axis_color=black)
+    #_set_mlab_axis(scale, bg_color=white, axis_color=black)
 
     # plot user vectors
     for vec in vec_users:
         vec = _norm_vector(vec)
         vec = scale * np.array(vec)
-        mlab.plot3d([0, vec[0]], [0, vec[1]], [0, vec[2]], color=red, tube_radius=5.)
+        #mlab.plot3d([0, vec[0]], [0, vec[1]], [0, vec[2]], color=red, tube_radius=5.)
 
     title_x, title_y, title_z = -500, scale*2+200, scale*2+200
 
@@ -199,8 +197,8 @@ def arrow_joint_interactive(vec_users, vec_items, names, show_title=False, scale
     for vec, name in zip(vec_items, names):
         vec = _norm_vector(vec)
         vec = scale * np.array(vec)
-        mlab.plot3d([0, vec[0]], [0, vec[1]], [0, vec[2]], color=green, tube_radius=5.)
+        #mlab.plot3d([0, vec[0]], [0, vec[1]], [0, vec[2]], color=green, tube_radius=5.)
 
         if show_title:
-            mlab.text3d(title_x, title_y, title_z, name, color=black, scale=30)
+            #mlab.text3d(title_x, title_y, title_z, name, color=black, scale=30)
             title_z -= 50

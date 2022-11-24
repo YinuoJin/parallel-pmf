@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 {
     // clang-format off
 
-    po::options_description desc("Parameters for Probabilistic Matrix Factorization (PMF)");
+    po::options_description d   esc("Parameters for Probabilistic Matrix Factorization (PMF)");
 
     desc.add_options()
             ("help,h", "Help")

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmodels.a  CMakeFiles/models.dir/dataloader.cpp.o CMakeFiles/models.dir/datamanager.cpp.o CMakeFiles/models.dir/PMF.cpp.o CMakeFiles/models.dir/utils.cpp.o
+/usr/bin/ranlib libmodels.a

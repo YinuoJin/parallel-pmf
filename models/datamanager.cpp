@@ -16,16 +16,16 @@ namespace
 {
 
 /**
- * Centers the ratings in the given data matrix such that the midpoint of the rating scale is zero.
+ * Centers the exprs in the given data matrix such that the midpoint of the expr scale is zero.
  * @param data The matrix to center.
  */
 void zeroCenter(MatrixXd &data)
 {
     using namespace Utils;
 
-    const int rating_col = col_value(Cols::rating);
-    const set<double> unique_vals{data.col(rating_col).data(),
-                                  data.col(rating_col).data() + data.col(rating_col).size()};
+    const int expr_col = col_value(Cols::expr);
+    const set<double> unique_vals{data.col(expr_col).data(),
+                                  data.col(expr_col).data() + data.col(expr_col).size()};
 
     double sum = 0;
 
@@ -38,7 +38,7 @@ void zeroCenter(MatrixXd &data)
 
     for (int i = 0; i < data.rows(); i++)
     {
-        data(i, rating_col) -= mid;
+        data(i, expr_col) -= mid;
     }
 }
 
@@ -69,7 +69,7 @@ DataManager::DataManager(const shared_ptr<DataLoader> &data_loader, const double
 }
 
 /**
- * Load the user ids, item ids, train data, test data, splitting the dataset by the given ratio. (e.g.
+ * Load the spot ids, item ids, train data, test data, splitting the dataset by the given ratio. (e.g.
  * ratio=0.7 will split to 70% train, 30% test)
  * @param ratio The ratio to split the data into training data vs. testing data.
  */
@@ -79,11 +79,13 @@ void DataManager::loadDataset(const double ratio)
     Expects(ratio > 0.0 && ratio <= 1.0);
 
     MatrixXd data = m_data_loader->getDataset();
-    zeroCenter(data);
+
+    // for Poisson factorization model: avoid cetering data
+    // zeroCenter(data);
     shuffle(data);
 
-    // get all unique user & item ids from the full dataset
-    m_users = make_shared<vector<int>>(getUnique(data, col_value(Cols::user)));
+    // get all unique spot & item ids from the full dataset
+    m_spots = make_shared<vector<int>>(getUnique(data, col_value(Cols::spot)));
     m_items = make_shared<vector<int>>(getUnique(data, col_value(Cols::item)));
 
     tie(m_data_train, m_data_test) = split(data, ratio);
@@ -122,12 +124,12 @@ TestingData DataManager::getTest() const
 }
 
 /**
- * Gets all the unique user ids.
- * @return a shared_ptr to the vector of the user ids.
+ * Gets all the unique spot ids.
+ * @return a shared_ptr to the vector of the spot ids.
  */
-shared_ptr<vector<int>> DataManager::getUsers() const
+shared_ptr<vector<int>> DataManager::getSpots() const
 {
-    return m_users;
+    return m_spots;
 }
 
 /**

@@ -14,7 +14,7 @@ using namespace Utils;
 namespace
 {
 
-const tuple<string, string, string> csvheader = {"userId", "itemId", "rating"};
+const tuple<string, string, string> csvheader = {"spotId", "itemId", "expr"};
 
 /**
  * Count the total number of lines for the input file.
@@ -25,8 +25,8 @@ unsigned long int getLineNumber(const string &file_name)
 {
     io::CSVReader<3> in(file_name);
 
-    const auto [userIdCol, itemIdCol, ratingCol] = csvheader;
-    in.read_header(io::ignore_extra_column, userIdCol, itemIdCol, ratingCol);
+    const auto [spotIdCol, itemIdCol, exprCol] = csvheader;
+    in.read_header(io::ignore_extra_column, spotIdCol, itemIdCol, exprCol);
     int col1, col2;
     double col3;
     unsigned long int count = 0;
@@ -72,18 +72,18 @@ MatrixXd DataLoader::getDataset() const
     cout << "Loading input matrix..." << endl;
 
     io::CSVReader<3> in(m_dataset_in);
-    const auto [userIdCol, itemIdCol, ratingCol] = csvheader;
-    in.read_header(io::ignore_extra_column, userIdCol, itemIdCol, ratingCol);
+    const auto [spotIdCol, itemIdCol, exprCol] = csvheader;
+    in.read_header(io::ignore_extra_column, spotIdCol, itemIdCol, exprCol);
 
-    int user_id;
+    int spot_id;
     int item_id;
-    double rating;
+    double expr;
     int row_idx = 0;
 
-    while (in.read_row(user_id, item_id, rating))
+    while (in.read_row(spot_id, item_id, expr))
     {
         Vector3d curr;
-        curr << user_id, item_id, rating;
+        curr << spot_id, item_id, expr;
         data.row(row_idx) = curr;
         row_idx++;
     }

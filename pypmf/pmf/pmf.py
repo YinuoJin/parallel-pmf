@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score
 
-from pmf import plot as pmf_plot
+import plot as pmf_plot
 
 class PMF(object):
     """
@@ -44,20 +44,20 @@ class PMF(object):
         exec_name = 'main.tsk'
         self.bin_exec = os.path.join(pwd, exec_name)
         self.indir = indir
-        self.data_path = os.path.join(indir, 'ratings.csv')
-        self.mapper_path = os.path.join(indir, 'movies.csv')
+        self.data_path = os.path.join(indir, 'expr.csv')
+        self.mapper_path = os.path.join(indir, 'genes.csv')
         self.outdir = outdir
         self.task = task
 
         # model parameters
-        self.theta = pd.DataFrame()  # dimension: user_id x k-dimensional theta latent attribute
+        self.theta = pd.DataFrame()  # dimension: spot_id x k-dimensional theta latent attribute
         self.beta = pd.DataFrame() # dimension: item_id x k-dimensional beta latent attribute
         self.beta_embedded = pd.DataFrame() # dimension: item_id x 3
 
         self.loss = pd.DataFrame()
 
         # dataset information
-        self.users = set()
+        self.spots = set()
         self.items = set()
         self.genres = set()
         # mapping information betweeen item, item title & genre
@@ -75,11 +75,12 @@ class PMF(object):
 
     def _initialize(self, kwargs):
         self.default_params = {
-            'parallel': True,
             'thread': 8,
             'gamma': 0.01,
-            'theta_std': 1,
-            'beta_std': 1,
+            'lambda_theta': 0.5,
+            'lambda_beta': 0.5,
+            'eta_theta': 0.1,
+            'eta_beta': 5.0,
         }
         print('Initializing model parameters...')
 
@@ -90,7 +91,7 @@ class PMF(object):
             else:
                 self.args[key] = self.default_params[key]
 
-    def learn(self, k=3, n_epochs=200, train_test_split=0.7):
+    def learn(self, k=5, n_epochs=200, train_test_split=0.75):
         """
         Perform model training to learn model parameters given the dataset
         It calls the C++ program to perform training and save the training
@@ -112,14 +113,21 @@ class PMF(object):
                "--task {}".format(self.task),
                "-i {}".format(self.data_path),
                "-m {}".format(self.mapper_path),
-               "-o {}".format(self.outdir),
-               "-k {}".format(k), "-n {}".format(n_epochs),
+               #"-o {}".format(self.outdir),
+               "-k {}".format(k),
+               "-n {}".format(n_epochs),
                "-r {}".format(train_test_split),
                "--thread {}".format(self.args['thread']),
                "--gamma {}".format(self.args['gamma']),
-               "--std_theta {}".format(self.args['theta_std']),
-               "--std_beta {}".format(self.args['beta_std'])]
-
+               "--lambda_theta {}".format(self.args['lambda_theta']),
+               "--eta_theta {}".format(self.args['eta_theta']),
+               "--lambda_beta {}".format(self.args['lambda_beta']),
+               "--eta_beta {}".format(self.args['eta_beta']),
+        ]
+        
+        
+        #cmd = [self.bin_exec, "-h"]
+        
         print('Training model...')
         res = subprocess.getoutput(' '.join(cmd))
         print(res)
@@ -140,7 +148,7 @@ class PMF(object):
         self.loss = pd.read_csv(loss_file)
         self.theta = self._load_model(theta_file)
         self.beta = self._load_model(beta_file)
-        self.users = set(self.theta.index)
+        self.spots = set(self.theta.index)
         self.items = set(self.beta.index)
         self._load_mapper()  # Load item - title - genre maps
 
@@ -183,36 +191,36 @@ class PMF(object):
 
         return df_processed
 
-    def _predict(self, user_id):
-        """Predict the preference of user_id to all items"""
-        theta_i = self.theta.loc[user_id]
+    def _predict(self, spot_id):
+        """Predict the preference of spot_id to all items"""
+        theta_i = self.theta.loc[spot_id]
         pred = theta_i.dot(self.beta.T)
 
         return pred
 
-    def _predict_user(self, item_id):
+    def _predict_spot(self, item_id):
         beta_i = self.beta.loc[item_id]
         pred = beta_i.dot(self.theta.T)
 
         return pred
 
-    def _recommend_item_to_user(self, item_id, N=10):
+    def _recommend_item_to_spot(self, item_id, N=10):
         self._verify_load_status()
-        preds = self._predict_user(item_id)
-        rec_users = preds.sort_values(ascending=False)
-        rec_use_ids = rec_users.index[:N].to_series()
+        preds = self._predict_spot(item_id)
+        rec_spots = preds.sort_values(ascending=False)
+        rec_use_ids = rec_spots.index[:N].to_series()
 
         return rec_use_ids
 
-    def recommend_user(self, user_id, N=10, verbose=1):
-        """Recommend top N items for given user"""
+    def recommend_spot(self, spot_id, N=10, verbose=1):
+        """Recommend top N items for given spot"""
         self._verify_load_status()
-        assert user_id in self.users, \
-            "User id {} doesn't exist in the dataset".format(user_id)
+        assert spot_id in self.spots, \
+            "Spot id {} doesn't exist in the dataset".format(spot_id)
         if verbose:
-            print("Top {0} recommended movies for user {1}:".format(N, user_id))
+            print("Top {0} recommended genes for spot {1}:".format(N, spot_id))
 
-        preds = self._predict(user_id)
+        preds = self._predict(spot_id)
         rec_items = preds.sort_values(ascending=False)
         rec_items = rec_items.index[:N].to_series()
         rec_titles = rec_items.map(self.item_title)
@@ -233,7 +241,7 @@ class PMF(object):
         assert item_id in self.items, \
             "Item id {0} doesn't exist in the dataset".format(item_id)
         if verbose:
-             print("Top {0} recommended movies if you also like {1}:".format(N, self.item_title[item_id]))
+             print("Top {0} recommended genes if you also like {1}:".format(N, self.item_title[item_id]))
 
         rec_items = self._get_similar_items(item_id, N)
         rec_titles = rec_items.map(self.item_title)
@@ -241,34 +249,34 @@ class PMF(object):
 
         return df_rec
 
-    def recommend_joint(self, user_id, iter=2, N=3, verbose=1):
-        """Iterative recommend users and items for each other"""
-        assert user_id in self.users, \
-            "User {} doesn't exist in the dataset".format(user_id)
+    def recommend_joint(self, spot_id, iter=2, N=3, verbose=1):
+        """Iterative recommend spots and items for each other"""
+        assert spot_id in self.spots, \
+            "Spot {} doesn't exist in the dataset".format(spot_id)
         if verbose:
-            print("Iteratively recommending users and items for {} periods...".format(iter))
+            print("Iteratively recommending spots and items for {} periods...".format(iter))
 
-        rec_users = {user_id}
+        rec_spots = {spot_id}
         rec_items = set()
         curr_itr = 0
 
         while curr_itr < iter:
-            for user in rec_users:  # recommend user -> item
-                curr_items = self.recommend_user(user, N=N, verbose=0).index
+            for spot in rec_spots:  # recommend spot -> item
+                curr_items = self.recommend_spot(spot, N=N, verbose=0).index
                 rec_items = rec_items.union(set(curr_items))
 
-            for item in rec_items:  # recommend item -> user
-                curr_users = self._recommend_item_to_user(item, N=N)
-                rec_users = rec_users.union(set(curr_users))
+            for item in rec_items:  # recommend item -> spot
+                curr_spots = self._recommend_item_to_spot(item, N=N)
+                rec_spots = rec_spots.union(set(curr_spots))
 
             curr_itr += 1
 
-        rec_users = list(rec_users)
+        rec_spots = list(rec_spots)
         rec_items = pd.Series(list(rec_items))
         rec_titles = rec_items.map(self.item_title)
         df_rec_items = self._refactor_rec(rec_titles, idx=rec_items)
 
-        return rec_users, df_rec_items
+        return rec_spots, df_rec_items
 
     def recommend_genre(self, genre, N=10, verbose=1):
         """Recommend top N items from a given genre"""
@@ -276,7 +284,7 @@ class PMF(object):
         assert genre in self.genres, \
             "Genre {} doesen't exist in the dataset".format(genre)
         if verbose:
-            print("Top {0} recommended movies for genre {1}:".format(N, genre))
+            print("Top {0} recommended genes for genre {1}:".format(N, genre))
 
         candidate_item_list = list(self.genre_items[genre])
         sample_item_id = np.random.choice(candidate_item_list)
@@ -352,13 +360,13 @@ class PMF(object):
         self.loss['Epoch'] = x
         pmf_plot.loss(self.loss, outdir=self.outdir)
 
-    def display_user(self, user_id, N=10, show_title=False, interactive=True):
+    def display_spot(self, spot_id, N=10, show_title=False, interactive=True):
         self._verify_load_status()
         if len(self.beta_embedded) == 0:
             self.tsne()
-        print("Spatial visualization of top {0} recommended movies for user {1}...".format(N, user_id))
+        print("Spatial visualization of top {0} recommended genes for spot {1}...".format(N, spot_id))
 
-        df_rec = self.recommend_user(user_id, N)
+        df_rec = self.recommend_spot(spot_id, N)
         print(df_rec.head())
 
         vec = self.beta_embedded.loc[df_rec.index].values
@@ -374,7 +382,7 @@ class PMF(object):
         if len(self.beta_embedded) == 0:
             self.tsne()
         title = item if isinstance(item, str) else self.item_title[item]
-        print("Spatial visualization of top {0} similar movies for item {1}...".format(N, title))
+        print("Spatial visualization of top {0} similar genes for item {1}...".format(N, title))
 
         df_rec = self.recommend_items(item, N)
         print(df_rec.head())
@@ -403,21 +411,21 @@ class PMF(object):
         else:
             pmf_plot.arrow(vec)
 
-    def display_joint(self, user_id, iter=2, N=10, show_title=False, interactive=True):
-        """Iteratively plot interacting users & items"""
+    def display_joint(self, spot_id, iter=2, N=10, show_title=False, interactive=True):
+        """Iteratively plot interacting spots & items"""
         self._verify_load_status()
         if len(self.beta_embedded) == 0:
             self.tsne()
-        user_ids, df_items = self.recommend_joint(user_id, iter=iter)
+        spot_ids, df_items = self.recommend_joint(spot_id, iter=iter)
 
-        vec_users = self.theta.loc[user_ids].values
+        vec_spots = self.theta.loc[spot_ids].values
         vec_items = self.beta_embedded.loc[df_items.index].values
         titles = df_items['itemName']
 
         if interactive:
-            pmf_plot.arrow_joint_interactive(vec_users, vec_items, titles, show_title=show_title)
+            pmf_plot.arrow_joint_interactive(vec_spots, vec_items, titles, show_title=show_title)
         else:
-            pmf_plot.arrow_joint(vec_users, vec_items)
+            pmf_plot.arrow_joint(vec_spots, vec_items)
 
     def display_random(self, N=3, n_neighbors=10, show_title=False, interactive=True):
         self._verify_load_status()

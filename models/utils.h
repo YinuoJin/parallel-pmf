@@ -18,10 +18,10 @@ namespace po = boost::program_options;
 
 /*---   Argument-parsing utility functions    ---*/
 
-// Enums of the possible user options for recommendations
+// Enums of the possible spot options for recommendations
 enum class RecOption
 {
-    user = 0,
+    spot = 0,
     item = 1
 };
 
@@ -46,8 +46,10 @@ struct Arguments
     int n_epochs;
     double gamma;
     double ratio;
-    double std_theta;
-    double std_beta;
+    double lambda_theta;
+    double lambda_beta;
+    double eta_theta;
+    double eta_beta;
     int loss_interval;
 };
 
@@ -82,6 +84,8 @@ vector<string> tokenize(string &s, string delimiter = " ");
 vector<int> nonNegativeIdxs(const VectorXd &x);
 
 int countIntersect(const VectorXi &x, const VectorXi &y);
+
+double gammaLogLikelihood(const VectorXd &x, double a, double b);
 
 vector<int> getUnique(const MatrixXd &mat, int col_idx);
 
@@ -134,13 +138,13 @@ struct ItemMap
 ItemMap loadItemMap(const string &input);
 
 /**
- * Enums of the columns to their column indices of ratings dataset
+ * Enums of the columns to their column indices of exprs dataset
  */
 enum class Cols
 {
-    user = 0,
+    spot = 0,
     item = 1,
-    rating = 2
+    expr = 2
 };
 
 int col_value(Cols);

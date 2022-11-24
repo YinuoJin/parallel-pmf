@@ -17,7 +17,7 @@ class AbstractDataManager
     virtual shared_ptr<MatrixXd> getTrain() const = 0;
     virtual shared_ptr<MatrixXd> getTest() const = 0;
 
-    virtual shared_ptr<vector<int>> getUsers() const = 0;
+    virtual shared_ptr<vector<int>> getSpots() const = 0;
     virtual shared_ptr<vector<int>> getItems() const = 0;
 
     virtual ~AbstractDataManager() = default;

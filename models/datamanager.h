@@ -26,7 +26,7 @@ class DataManager : public AbstractDataManager
     shared_ptr<MatrixXd> m_data_train;
     shared_ptr<MatrixXd> m_data_test;
 
-    shared_ptr<vector<int>> m_users;
+    shared_ptr<vector<int>> m_spots;
     shared_ptr<vector<int>> m_items;
 
     // Splits data into train-test data with given ratio (e.g. ratio=0.7 will split to 70% train, 30% test)
@@ -40,7 +40,7 @@ class DataManager : public AbstractDataManager
     virtual TrainingData getTrain() const;
     virtual TestingData getTest() const;
 
-    virtual shared_ptr<vector<int>> getUsers() const;
+    virtual shared_ptr<vector<int>> getSpots() const;
     virtual shared_ptr<vector<int>> getItems() const;
 };
 
