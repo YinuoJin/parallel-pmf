@@ -1,7 +1,7 @@
 # Parallel Probabilistic Poisson Matrix Factorization using C++
 
 ## About
-Probablistic Matrix Factorization is a class of graphical models commonly used for recommender systems. This project provides a parallel implementation of a Poisson matrix factorization model utilizing stochastic gradient ascent with no locking to obtain unbiased Maximum A Posteriori (MAP) estimates of the latent user preference and attribute vectors.
+Probablistic Matrix Factorization is a class of graphical models commonly used for recommender systems. This project provides a parallel implementation of a Normal-Normal / Gamma-Poisson matrix factorization model utilizing stochastic gradient ascent with no locking to obtain unbiased Maximum A Posteriori (MAP) estimates of the latent user preference and attribute vectors.
 
 ## Requirements & Prequisite libraries
 * Boost >= 1.7.0
